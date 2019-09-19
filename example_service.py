@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from datetime import timedelta
+from typing import Tuple
 
 import rx
 
@@ -21,20 +22,22 @@ def main():
     dbus.publish_ve_property(service_name, '/EnterNumberBetween0and10', 5, accept_change=lambda n: 0 <= float(n) <= 10)
     dbus.publish_ve_property(service_name, '/EnterSalutation', 'Hello', accept_change=always)
     dbus.publish_ve_property(service_name, '/EnterYourName', '', accept_change=always)
-    dbus.publish_ve_property(service_name, '/Greetings', '')
+    dbus.publish_ve_property(service_name, '/Greetings', 'please enter a name and a salutation')
 
     def update_counter(i):
         dbus.publish_ve_property(service_name, '/Counter', i)
 
     rx.interval(timedelta(seconds=1)).subscribe(update_counter)
 
-    def greeter(salutation: VeProperty, name: VeProperty):
-        greeting = salutation.text + ' ' + name.text if salutation.text and name.text else ''
+    def greeter(s_n: Tuple[VeProperty, VeProperty]):
+        s, n = s_n; salutation = s.text; name = n.text
+
+        greeting = f'{salutation} {name}' if salutation and name else 'please enter a name and a salutation'
         dbus.publish_ve_property(service_name, '/Greetings', greeting)
 
     salutation = dbus.observe_ve_property(service_name, '/EnterSalutation')
     name = dbus.observe_ve_property(service_name, '/EnterYourName')
-    rx.combine_latest(salutation, name).subscribe(lambda t: greeter(*t))
+    rx.combine_latest(salutation, name).subscribe(greeter)
 
     dbus.run_forever()
 

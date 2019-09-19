@@ -5,6 +5,9 @@ import rx.operators as op
 from velib_rx.dbus import DBus
 import pickle
 
+# this will record all propertyChanged of the matching service(s)
+# it will not yet record properties for which no propertyChanged has been fired
+# see TODO in observe_ve_property
 
 service = 'com.victronenergy.meteo.*'
 t_seconds = 30
@@ -18,7 +21,7 @@ properties.pipe(
     op.timestamp()
 ).subscribe(events.append)
 
-print(f'start recording {service} for {t_seconds} seconds')
+print(f'recording {service} for {t_seconds} seconds')
 dbus.run_for_timespan(timedelta(seconds=t_seconds))
 
 file_name = 'recorded.dat'

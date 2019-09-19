@@ -75,9 +75,16 @@ class UnresolvedSignal(Record):
 
 def _create_match_rule(message_type: str, service_name: str, object_path: str, interface: str, member: str) -> str:
 
+    # [1]
+    # the daemon cannot filter service name prefixes. so if there is a glob,
+    # we need to let all services through and filter here on the process.
+    # This could be made a bit more efficient:
+    # track nameownerchanged and install/remove specific match rules accordingly.
+    # probably not worth the effort
+
     filter_rule = "type='%s'" % message_type
 
-    if not service_name.endswith('*'):
+    if not service_name.endswith('*'):             # [1]
         filter_rule += ",%s='%s'" % ('sender', service_name)
 
     if object_path.endswith('*'):

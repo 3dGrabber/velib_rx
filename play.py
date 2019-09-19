@@ -15,12 +15,10 @@ def main():
 
     dbus = DBus.new_tcp_connection('192.168.178.137')
 
-    start_time = datetime.now()
-    time_shift = start_time - events[0].timestamp
     duration = events[-1].timestamp - events[0].timestamp + timedelta(seconds=2)
 
     for e in events:
-        due_time = (e.timestamp + time_shift) - start_time
+        due_time = e.timestamp - events[0].timestamp
 
         def publish(p=e.value):  # avoid closure trap
             print(p)
